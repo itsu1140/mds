@@ -23,10 +23,7 @@ COPY --from=backend-builder /app/package.json ./
 RUN npm install --omit=dev
 
 COPY --from=frontend-builder /app/dist /usr/share/nginx/html
-COPY frontend/nginx.conf.template /etc/nginx/nginx.conf.template
-
-COPY start.sh ./
-RUN chmod +x ./start.sh
+COPY /etc/nginx/nginx.conf.template
 
 EXPOSE 50003
 ENV DATA_DIR=/app/data
