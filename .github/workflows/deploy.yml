@@ -16,7 +16,6 @@ jobs:
                   username: ${{ secrets.SSH_USER }}
                   key: ${{ secrets.SSH_KEY }}
                   script: |
-                      cd ${{ secrets.DEPLOY_PATH }}
-                      git pull origin main
-                      docker compose -f docker-compose.prod.yml up -d --build \
-                          -e ROOT_PATH=${{ secrets.ROOT_PATH }}
+                      cd ${{ secrets.DEPLOY_PATH }} && \
+                      git pull origin main && \
+                      ROOT_PATH=${{ secrets.ROOT_PATH }} docker compose -f docker-compose.prod.yml up -d --build
