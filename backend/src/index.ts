@@ -5,8 +5,9 @@ import fsSync from 'fs'
 import path from 'path'
 
 const app = express()
-const PORT = 3001
+const PORT = parseInt(process.env.PORT || '3001')
 const DATA_DIR = path.resolve(process.env.DATA_DIR || path.join(process.cwd(), 'data'))
+const STATIC_DIR = path.resolve(process.cwd(), 'public')
 
 app.use(cors())
 app.use(express.json())
@@ -133,4 +134,11 @@ app.post('/api/move', async (req, res) => {
     }
 })
 
-app.listen(PORT, () => console.log(`Backend running on :${PORT}, data: ${DATA_DIR}`))
+if (fsSync.existsSync(STATIC_DIR)) {
+    app.use(express.static(STATIC_DIR))
+    app.get('*', (_req, res) => {
+        res.sendFile(path.join(STATIC_DIR, 'index.html'))
+    })
+}
+
+app.listen(PORT, () => console.log(`Server running on :${PORT}, data: ${DATA_DIR}`))

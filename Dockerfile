@@ -15,17 +15,14 @@ COPY backend/ .
 RUN npm run build
 
 FROM node:20-alpine
-RUN apk add --no-cache nginx
-
 WORKDIR /app
 COPY --from=backend-builder /app/dist ./dist
 COPY --from=backend-builder /app/package.json ./
 RUN npm install --omit=dev
-
-COPY --from=frontend-builder /app/dist /usr/share/nginx/html
-COPY /etc/nginx/nginx.conf.template
+COPY --from=frontend-builder /app/dist ./public
 
 EXPOSE 50003
 ENV DATA_DIR=/app/data
+ENV PORT=50003
 
-CMD ["./start.sh"]
+CMD ["node", "dist/index.js"]
