@@ -1,0 +1,30 @@
+services:
+    backend:
+        build:
+            context: ./backend
+            dockerfile: Dockerfile.dev
+        volumes:
+            - ./backend/src:/app/src
+            - mds-data:/data
+        environment:
+            - DATA_DIR=/data
+        restart: unless-stopped
+
+    frontend:
+        build:
+            context: ./frontend
+            dockerfile: Dockerfile.dev
+        ports:
+            - "50003:5173"
+        volumes:
+            - ./frontend/src:/app/src
+            - ./frontend/index.html:/app/index.html
+            - ./frontend/vite.config.ts:/app/vite.config.ts
+        environment:
+            - API_TARGET=http://backend:3001
+        depends_on:
+            - backend
+        restart: unless-stopped
+
+volumes:
+    mds-data:
