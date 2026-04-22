@@ -1,4 +1,4 @@
-.PHONY: dev down logs build
+.PHONY: dev down logs
 
 dev:
 	docker compose up --build
@@ -8,6 +8,3 @@ down:
 
 logs:
 	docker compose logs -f
-
-build:
-	docker compose -f docker-compose.prod.yml build
