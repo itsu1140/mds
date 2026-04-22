@@ -94,15 +94,15 @@ export default function Sidebar({ tree, currentFile, onOpenFile, onRefresh, onFi
             const siblings = getSiblings(tree, parentPath)
             if (siblings.some(n => n.name === leaf)) return `"${leaf}" はすでに存在します`
             const p = inlineEdit.dirPath ? `${inlineEdit.dirPath}/${value}.md` : `${value}.md`
-            setInlineEdit(null)
             try {
                 await api.saveFile(p, '')
+                setInlineEdit(null)
                 await onRefresh()
                 onOpenFile(p)
+                return true
             } catch (e) {
-                console.error(e)
+                return String(e)
             }
-            return true
         }
 
         if (inlineEdit.type === 'newDir') {
@@ -112,14 +112,14 @@ export default function Sidebar({ tree, currentFile, onOpenFile, onRefresh, onFi
             const siblings = getSiblings(tree, parentPath)
             if (siblings.some(n => n.name === leaf)) return `"${leaf}" はすでに存在します`
             const p = inlineEdit.dirPath ? `${inlineEdit.dirPath}/${value}` : value
-            setInlineEdit(null)
             try {
                 await api.createDir(p)
+                setInlineEdit(null)
                 await onRefresh()
+                return true
             } catch (e) {
-                console.error(e)
+                return String(e)
             }
-            return true
         }
 
         if (inlineEdit.type === 'rename') {
@@ -133,18 +133,18 @@ export default function Sidebar({ tree, currentFile, onOpenFile, onRefresh, onFi
             }
             const ext = node.type === 'file' ? '.md' : ''
             const newPath = parentPath ? `${parentPath}/${value}${ext}` : `${value}${ext}`
-            setInlineEdit(null)
             try {
                 await api.moveItem(node.path, newPath)
+                setInlineEdit(null)
                 if (node.type === 'file') {
                     onFileDeleted(node.path)
                     if (currentFile === node.path) onOpenFile(newPath)
                 }
                 await onRefresh()
+                return true
             } catch (e) {
-                console.error(e)
+                return String(e)
             }
-            return true
         }
 
         return true
