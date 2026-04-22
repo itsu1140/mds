@@ -36,7 +36,7 @@ jobs:
             docker run -d \
               --name mds \
               --restart unless-stopped \
-              -p 50001:50001 \
+              -p 50003:50003 \
               -e ROOT_PATH=/mds \
               -v ${{ secrets.DATA_DIR }}:/app/data \
               ${{ secrets.DOCKERHUB_USERNAME }}/mds:latest

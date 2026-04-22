@@ -1,8 +1,8 @@
 server {
-    listen 80;
+    listen 50003;
 
     location ${ROOT_PATH}api/ {
-        proxy_pass http://backend:3001/api/;
+        proxy_pass http://localhost:3001/api/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
     }
