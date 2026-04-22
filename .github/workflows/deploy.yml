@@ -1,21 +1,42 @@
-name: Deploy mds
+name: Deploy
 
 on:
-    push:
-        branches: main
+  push:
+    branches: main
 
 jobs:
-    deploy:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Deploy to server
-              uses: appleboy/ssh-action@v1.0.3
-              with:
-                  host: ${{ secrets.SSH_HOST }}
-                  port: ${{ secrets.SSH_PORT }}
-                  username: ${{ secrets.SSH_USER }}
-                  key: ${{ secrets.SSH_KEY }}
-                  script: |
-                      cd ${{ secrets.DEPLOY_PATH }} && \
-                      git pull origin main && \
-                      ROOT_PATH=${{ secrets.ROOT_PATH }} docker compose -f docker-compose.prod.yml up -d --build
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Push
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/mds:latest
+
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          port: ${{ secrets.SSH_PORT }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/mds:latest
+            docker rm -f mds 2>/dev/null || true
+            docker run -d \
+              --name mds \
+              --restart unless-stopped \
+              -p 50001:50001 \
+              -e ROOT_PATH=/mds \
+              -v ${{ secrets.DATA_DIR }}:/app/data \
+              ${{ secrets.DOCKERHUB_USERNAME }}/mds:latest
