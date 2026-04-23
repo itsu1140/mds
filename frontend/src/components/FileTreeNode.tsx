@@ -56,11 +56,10 @@ function EditInput({ defaultValue = '', onConfirm, onCancel }: {
                 onBlur={onCancel}
                 onClick={e => e.stopPropagation()}
             />
-            {error && errPos && createPortal(
+            {error && errPos && (
                 <div className="tree-input-error" style={{ position: 'fixed', top: errPos.top, left: errPos.left, zIndex: 9999 }}>
                     {error}
-                </div>,
-                document.body
+                </div>
             )}
         </div>
     )
