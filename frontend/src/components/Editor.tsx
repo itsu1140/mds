@@ -7,9 +7,11 @@ interface Props {
     saved: boolean
     onChange: (val: string) => void
     onSave: () => void
+    sidebarOpen: boolean
+    onOpenSidebar: () => void
 }
 
-export default function Editor({ currentFile, content, saved, onChange, onSave }: Props) {
+export default function Editor({ currentFile, content, saved, onChange, onSave, sidebarOpen, onOpenSidebar }: Props) {
     const wrapRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
@@ -23,30 +25,33 @@ export default function Editor({ currentFile, content, saved, onChange, onSave }
         return () => window.removeEventListener('keydown', handler)
     }, [onSave])
 
-    if (!currentFile) {
-        return (
-            <div className="editor-empty">
-                <p>ファイルを選択してください</p>
-            </div>
-        )
-    }
-
-    const fileName = currentFile.split('/').pop()?.replace(/\.md$/, '') ?? ''
+    const fileName = currentFile?.split('/').pop()?.replace(/\.md$/, '') ?? ''
 
     return (
         <div className="editor">
-            <div className="editor-header">
-                <span className="editor-filename">{fileName}</span>
-            </div>
-            <div ref={wrapRef} className="editor-content" data-color-mode="dark">
-                <MDEditor
-                    value={content}
-                    onChange={val => onChange(val ?? '')}
-                    height="100%"
-                    preview="live"
-                    visibleDragbar={false}
-                />
-            </div>
+            {(currentFile || !sidebarOpen) && (
+                <div className="editor-header">
+                    {!sidebarOpen && (
+                        <button className="menu-btn" onClick={onOpenSidebar} title="メニューを開く">☰</button>
+                    )}
+                    {currentFile && <span className="editor-filename">{fileName}</span>}
+                </div>
+            )}
+            {currentFile ? (
+                <div ref={wrapRef} className="editor-content" data-color-mode="dark">
+                    <MDEditor
+                        value={content}
+                        onChange={val => onChange(val ?? '')}
+                        height="100%"
+                        preview="live"
+                        visibleDragbar={false}
+                    />
+                </div>
+            ) : (
+                <div className="editor-empty">
+                    <p>ファイルを選択してください</p>
+                </div>
+            )}
         </div>
     )
 }

@@ -10,6 +10,8 @@ interface Props {
     onOpenFile: (path: string) => void
     onRefresh: () => void
     onFileDeleted: (path: string) => void
+    sidebarOpen: boolean
+    onClose: () => void
 }
 
 interface MenuState {
@@ -45,7 +47,7 @@ function parseName(name: string, dirPath?: string): { leaf: string; parentPath: 
     return { leaf, parentPath }
 }
 
-export default function Sidebar({ tree, currentFile, onOpenFile, onRefresh, onFileDeleted }: Props) {
+export default function Sidebar({ tree, currentFile, onOpenFile, onRefresh, onFileDeleted, sidebarOpen, onClose }: Props) {
     const [menu, setMenu] = useState<MenuState | null>(null)
     const [rootDragOver, setRootDragOver] = useState(false)
     const [inlineEdit, setInlineEdit] = useState<InlineEdit>(null)
@@ -170,12 +172,13 @@ export default function Sidebar({ tree, currentFile, onOpenFile, onRefresh, onFi
     const isRootNewItem = inlineEdit !== null && inlineEdit.type !== 'rename' && inlineEdit.dirPath === undefined
 
     return (
-        <div className="sidebar" onClick={() => setMenu(null)}>
+        <div className={`sidebar${sidebarOpen ? '' : ' closed'}`} onClick={() => setMenu(null)}>
             <div className="sidebar-header">
                 <span className="sidebar-title">MDS</span>
                 <div className="sidebar-actions">
                     <button onClick={() => handleNewFile()} title="新規ファイル">＋</button>
                     <button onClick={() => handleNewDir()} title="新規フォルダ">🗂</button>
+                    <button onClick={onClose} title="閉じる" className="sidebar-close-btn">‹</button>
                 </div>
             </div>
             <div

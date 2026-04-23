@@ -9,6 +9,7 @@ export default function App() {
     const [currentFile, setCurrentFile] = useState<string | null>(null)
     const [content, setContent] = useState('')
     const [saved, setSaved] = useState(true)
+    const [sidebarOpen, setSidebarOpen] = useState(true)
     const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     const refreshTree = useCallback(async () => {
@@ -33,6 +34,7 @@ export default function App() {
             setCurrentFile(path)
             setContent(data.content)
             setSaved(true)
+            if (window.innerWidth < 768) setSidebarOpen(false)
         } catch (e) {
             console.error(e)
         }
@@ -78,12 +80,18 @@ export default function App() {
 
     return (
         <div className="app">
+            <div
+                className={`sidebar-backdrop${sidebarOpen ? ' open' : ''}`}
+                onClick={() => setSidebarOpen(false)}
+            />
             <Sidebar
                 tree={tree}
                 currentFile={currentFile}
                 onOpenFile={openFile}
                 onRefresh={refreshTree}
                 onFileDeleted={handleFileDeleted}
+                sidebarOpen={sidebarOpen}
+                onClose={() => setSidebarOpen(false)}
             />
             <Editor
                 currentFile={currentFile}
@@ -91,6 +99,8 @@ export default function App() {
                 saved={saved}
                 onChange={handleContentChange}
                 onSave={handleSave}
+                sidebarOpen={sidebarOpen}
+                onOpenSidebar={() => setSidebarOpen(true)}
             />
         </div>
     )

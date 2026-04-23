@@ -44,6 +44,13 @@ body,
     flex-direction: column;
     overflow: hidden;
     flex-shrink: 0;
+    transition: width 0.2s ease, min-width 0.2s ease;
+}
+
+.sidebar.closed {
+    width: 0;
+    min-width: 0;
+    border-right: none;
 }
 
 .sidebar-header {
@@ -77,6 +84,12 @@ body,
     font-size: 15px;
     line-height: 1;
     filter: grayscale(1);
+}
+
+.sidebar-close-btn {
+    font-size: 20px !important;
+    padding: 3px 4px !important;
+    filter: none !important;
 }
 
 .sidebar-actions button:hover {
@@ -159,6 +172,34 @@ body,
     font-size: 12px;
     flex-shrink: 0;
     filter: grayscale(1);
+}
+
+/* ── Sidebar backdrop (mobile) ── */
+
+.sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 199;
+}
+
+/* ── Menu button ── */
+
+.menu-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.menu-btn:hover {
+    background: var(--hover);
+    color: var(--text);
 }
 
 /* ── Editor ── */
@@ -311,4 +352,30 @@ body,
     padding: 2px 6px;
     white-space: nowrap;
     z-index: 100;
+}
+
+/* ── Mobile ── */
+
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        z-index: 200;
+        width: 260px;
+        min-width: 180px;
+        transition: transform 0.25s ease;
+    }
+
+    .sidebar.closed {
+        width: 260px;
+        min-width: 180px;
+        border-right: 1px solid var(--border);
+        transform: translateX(-100%);
+    }
+
+    .sidebar-backdrop.open {
+        display: block;
+    }
 }
