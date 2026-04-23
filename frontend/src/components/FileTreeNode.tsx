@@ -20,6 +20,7 @@ function EditInput({ defaultValue = '', onConfirm, onCancel }: {
 }) {
     const [value, setValue] = useState(defaultValue)
     const [error, setError] = useState<string | null>(null)
+    const [errPos, setErrPos] = useState<{ top: number; left: number } | null>(null)
     const ref = useRef<HTMLInputElement>(null)
     const cancelled = useRef(false)
 
@@ -34,7 +35,11 @@ function EditInput({ defaultValue = '', onConfirm, onCancel }: {
         if (!t || t === defaultValue) { onCancel(); return }
         const result = await onConfirm(t)
         if (cancelled.current) return
-        if (result !== true) setError(result)
+        if (result !== true) {
+            const rect = ref.current?.getBoundingClientRect()
+            setErrPos({ top: (rect?.bottom ?? 0) + 4, left: rect?.left ?? 0 })
+            setError(result)
+        }
     }
 
     return (
@@ -43,7 +48,7 @@ function EditInput({ defaultValue = '', onConfirm, onCancel }: {
                 ref={ref}
                 className="tree-input"
                 value={value}
-                onChange={e => { setValue(e.target.value); setError(null) }}
+                onChange={e => { setValue(e.target.value); setError(null); setErrPos(null) }}
                 onKeyDown={e => {
                     if (e.key === 'Enter') { e.preventDefault(); confirm() }
                     if (e.key === 'Escape') { e.preventDefault(); onCancel() }
@@ -51,7 +56,12 @@ function EditInput({ defaultValue = '', onConfirm, onCancel }: {
                 onBlur={onCancel}
                 onClick={e => e.stopPropagation()}
             />
-            {error && <div className="tree-input-error">{error}</div>}
+            {error && errPos && createPortal(
+                <div className="tree-input-error" style={{ position: 'fixed', top: errPos.top, left: errPos.left, zIndex: 9999 }}>
+                    {error}
+                </div>,
+                document.body
+            )}
         </div>
     )
 }

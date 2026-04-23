@@ -1,6 +1,6 @@
 import { TreeNode } from './types'
 
-const BASE = `${import.meta.env.BASE_URL}api`
+const BASE = import.meta.env.BASE_URL.replace(/\/?$/, '/') + 'api'
 
 async function req<T>(url: string, init?: RequestInit): Promise<T> {
     const res = await fetch(url, init)
