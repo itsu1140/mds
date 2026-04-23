@@ -5,6 +5,8 @@ interface Props {
     node: TreeNode
     depth: number
     currentFile: string | null
+    selectedPath: string | null
+    onSelect: (path: string) => void
     onOpenFile: (path: string) => void
     onContextMenu: (e: React.MouseEvent, node: TreeNode) => void
     onDropMove: (fromPath: string, toDirPath: string | undefined) => void
@@ -75,16 +77,19 @@ export function NewItemRow({ type, depth, onConfirm, onCancel }: {
     return (
         <div className="tree-item" style={{ paddingLeft: indent }}>
             <span className={type === 'newDir' ? 'tree-toggle' : 'tree-icon'} />
-            <span className="tree-file-icon">{type === 'newFile' ? '📄' : '📁'}</span>
+            <span className="tree-file-icon">{type === 'newFile' ? '📄' : ''}</span>
             <EditInput onConfirm={onConfirm} onCancel={onCancel} />
         </div>
     )
 }
 
-export default function FileTreeNode({ node, depth, currentFile, onOpenFile, onContextMenu, onDropMove, inlineEdit, onInlineConfirm, onInlineCancel }: Props) {
+export default function FileTreeNode({ node, depth, currentFile, selectedPath, onSelect, onOpenFile, onContextMenu, onDropMove, inlineEdit, onInlineConfirm, onInlineCancel }: Props) {
     const [expanded, setExpanded] = useState(true)
     const [dragOver, setDragOver] = useState(false)
     const indent = depth * 16 + 8
+    const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const wasLongPress = useRef(false)
+    const touchCoords = useRef<{ x: number; y: number } | null>(null)
 
     const isRenaming = inlineEdit?.type === 'rename' && inlineEdit.node.path === node.path
     const isPendingNewInDir = node.type === 'dir'
@@ -100,6 +105,32 @@ export default function FileTreeNode({ node, depth, currentFile, onOpenFile, onC
         e.stopPropagation()
         e.dataTransfer.setData('text/plain', node.path)
         e.dataTransfer.effectAllowed = 'move'
+    }
+
+    const handleTouchStart = (e: React.TouchEvent) => {
+        const touch = e.touches[0]
+        touchCoords.current = { x: touch.clientX, y: touch.clientY }
+        wasLongPress.current = false
+        longPressTimer.current = setTimeout(() => {
+            wasLongPress.current = true
+            if (touchCoords.current) {
+                const { x, y } = touchCoords.current
+                onContextMenu({ clientX: x, clientY: y, preventDefault: () => { }, stopPropagation: () => { } } as unknown as React.MouseEvent, node)
+            }
+        }, 500)
+    }
+
+    const cancelLongPress = () => {
+        if (longPressTimer.current) {
+            clearTimeout(longPressTimer.current)
+            longPressTimer.current = null
+        }
+    }
+
+    const handleMenuBtn = (e: React.MouseEvent) => {
+        e.stopPropagation()
+        e.preventDefault()
+        onContextMenu(e, node)
     }
 
     if (node.type === 'dir') {
@@ -125,15 +156,21 @@ export default function FileTreeNode({ node, depth, currentFile, onOpenFile, onC
         return (
             <div>
                 <div
-                    className={`tree-item tree-dir${dragOver ? ' drag-over' : ''}`}
+                    className={`tree-item tree-dir${dragOver ? ' drag-over' : ''}${selectedPath === node.path ? ' selected' : ''}`}
                     style={{ paddingLeft: indent }}
                     draggable
                     onDragStart={handleDragStart}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                    onClick={() => !isRenaming && setExpanded(v => !v)}
+                    onClick={() => {
+                        if (wasLongPress.current) { wasLongPress.current = false; return }
+                        if (!isRenaming) { onSelect(node.path); setExpanded(v => !v) }
+                    }}
                     onContextMenu={e => { e.stopPropagation(); onContextMenu(e, node) }}
+                    onTouchStart={handleTouchStart}
+                    onTouchEnd={cancelLongPress}
+                    onTouchMove={cancelLongPress}
                 >
                     <span className={`tree-toggle${expanded ? ' expanded' : ''}`} />
                     <span className="tree-dir-icon">📁</span>
@@ -144,7 +181,14 @@ export default function FileTreeNode({ node, depth, currentFile, onOpenFile, onC
                             onCancel={onInlineCancel}
                         />
                     ) : (
-                        <span>{node.name}</span>
+                        <>
+                            <span className="tree-item-name">{node.name}</span>
+                            <button
+                                className="tree-item-menu-btn"
+                                onClick={handleMenuBtn}
+                                onTouchStart={e => e.stopPropagation()}
+                            >⋮</button>
+                        </>
                     )}
                 </div>
                 {expanded && (
@@ -155,6 +199,8 @@ export default function FileTreeNode({ node, depth, currentFile, onOpenFile, onC
                                 node={child}
                                 depth={depth + 1}
                                 currentFile={currentFile}
+                                selectedPath={selectedPath}
+                                onSelect={onSelect}
                                 onOpenFile={onOpenFile}
                                 onContextMenu={onContextMenu}
                                 onDropMove={onDropMove}
@@ -183,8 +229,14 @@ export default function FileTreeNode({ node, depth, currentFile, onOpenFile, onC
             style={{ paddingLeft: indent }}
             draggable
             onDragStart={handleDragStart}
-            onClick={() => !isRenaming && onOpenFile(node.path)}
+            onClick={() => {
+                if (wasLongPress.current) { wasLongPress.current = false; return }
+                if (!isRenaming) { onSelect(node.path); onOpenFile(node.path) }
+            }}
             onContextMenu={e => { e.stopPropagation(); onContextMenu(e, node) }}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={cancelLongPress}
+            onTouchMove={cancelLongPress}
         >
             <span className="tree-icon" />
             <span className="tree-file-icon">📄</span>
@@ -195,7 +247,14 @@ export default function FileTreeNode({ node, depth, currentFile, onOpenFile, onC
                     onCancel={onInlineCancel}
                 />
             ) : (
-                <span>{node.name}</span>
+                <>
+                    <span className="tree-item-name">{node.name}</span>
+                    <button
+                        className="tree-item-menu-btn"
+                        onClick={handleMenuBtn}
+                        onTouchStart={e => e.stopPropagation()}
+                    >⋮</button>
+                </>
             )}
         </div>
     )

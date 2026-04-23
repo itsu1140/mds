@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import FileTreeNode, { NewItemRow } from './FileTreeNode'
 import ContextMenu from './ContextMenu'
 import { TreeNode, InlineEdit } from '../types'
@@ -51,6 +51,22 @@ export default function Sidebar({ tree, currentFile, onOpenFile, onRefresh, onFi
     const [menu, setMenu] = useState<MenuState | null>(null)
     const [rootDragOver, setRootDragOver] = useState(false)
     const [inlineEdit, setInlineEdit] = useState<InlineEdit>(null)
+    const [selectedPath, setSelectedPath] = useState<string | null>(null)
+
+    useEffect(() => {
+        if (currentFile) setSelectedPath(currentFile)
+    }, [currentFile])
+
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => {
+            if (e.key !== 'F2' || !selectedPath) return
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+            const node = findNode(tree, selectedPath)
+            if (node) handleRename(node)
+        }
+        window.addEventListener('keydown', handler)
+        return () => window.removeEventListener('keydown', handler)
+    }, [selectedPath, tree])
 
     const handleDropMove = async (fromPath: string, toDirPath: string | undefined) => {
         const basename = fromPath.split('/').pop()!
@@ -202,6 +218,8 @@ export default function Sidebar({ tree, currentFile, onOpenFile, onRefresh, onFi
                         node={node}
                         depth={0}
                         currentFile={currentFile}
+                        selectedPath={selectedPath}
+                        onSelect={setSelectedPath}
                         onOpenFile={onOpenFile}
                         onContextMenu={openMenu}
                         onDropMove={handleDropMove}

@@ -127,7 +127,37 @@ body,
     cursor: pointer;
     user-select: none;
     white-space: nowrap;
+}
+
+.tree-item-name {
+    flex: 1;
+    min-width: 0;
     overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tree-item-menu-btn {
+    opacity: 0;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0 3px;
+    font-size: 14px;
+    line-height: 1;
+    flex-shrink: 0;
+    border-radius: 3px;
+    transition: opacity 0.1s;
+}
+
+.tree-item:hover .tree-item-menu-btn,
+.tree-item-menu-btn:focus {
+    opacity: 1;
+}
+
+.tree-item-menu-btn:hover {
+    background: var(--hover);
+    color: var(--text);
 }
 
 .tree-item:hover {
@@ -137,6 +167,10 @@ body,
 .tree-item.active {
     background: var(--active-bg);
     color: var(--active-text);
+}
+
+.tree-item.selected {
+    background: var(--hover);
 }
 
 .tree-icon {
@@ -357,6 +391,10 @@ body,
 /* ── Mobile ── */
 
 @media (max-width: 768px) {
+    .tree-item-menu-btn {
+        opacity: 1;
+    }
+
     .sidebar {
         position: fixed;
         top: 0;
