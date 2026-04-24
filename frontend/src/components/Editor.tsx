@@ -11,7 +11,7 @@ interface Props {
     onOpenSidebar: () => void
 }
 
-export default function Editor({ currentFile, content, saved, onChange, onSave, sidebarOpen, onOpenSidebar }: Props) {
+export default function Editor({ currentFile, content, onChange, onSave, sidebarOpen, onOpenSidebar }: Props) {
     const wrapRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
@@ -37,21 +37,15 @@ export default function Editor({ currentFile, content, saved, onChange, onSave, 
                     {currentFile && <span className="editor-filename">{fileName}</span>}
                 </div>
             )}
-            {currentFile ? (
-                <div ref={wrapRef} className="editor-content" data-color-mode="dark">
-                    <MDEditor
-                        value={content}
-                        onChange={val => onChange(val ?? '')}
-                        height="100%"
-                        preview="live"
-                        visibleDragbar={false}
-                    />
-                </div>
-            ) : (
-                <div className="editor-empty">
-                    <p>ファイルを選択してください</p>
-                </div>
-            )}
+            <div ref={wrapRef} className="editor-content" data-color-mode="dark">
+                <MDEditor
+                    value={content}
+                    onChange={val => onChange(val ?? '')}
+                    height="100%"
+                    preview="live"
+                    visibleDragbar={false}
+                />
+            </div>
         </div>
     )
 }
