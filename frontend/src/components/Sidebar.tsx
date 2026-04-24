@@ -52,10 +52,22 @@ export default function Sidebar({ tree, currentFile, onOpenFile, onRefresh, onFi
     const [rootDragOver, setRootDragOver] = useState(false)
     const [inlineEdit, setInlineEdit] = useState<InlineEdit>(null)
     const [selectedPath, setSelectedPath] = useState<string | null>(null)
+    const [collapsedPaths, setCollapsedPaths] = useState<Set<string>>(() => {
+        try {
+            const saved = localStorage.getItem('mds-collapsed-paths')
+            return saved ? new Set<string>(JSON.parse(saved)) : new Set<string>()
+        } catch {
+            return new Set<string>()
+        }
+    })
 
     useEffect(() => {
         if (currentFile) setSelectedPath(currentFile)
     }, [currentFile])
+
+    useEffect(() => {
+        localStorage.setItem('mds-collapsed-paths', JSON.stringify([...collapsedPaths]))
+    }, [collapsedPaths])
 
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
@@ -87,13 +99,24 @@ export default function Sidebar({ tree, currentFile, onOpenFile, onRefresh, onFi
         setMenu({ x: e.clientX, y: e.clientY, node })
     }
 
+    const handleToggleExpand = (path: string) => {
+        setCollapsedPaths((prev: Set<string>) => {
+            const next = new Set(prev)
+            if (next.has(path)) next.delete(path)
+            else next.add(path)
+            return next
+        })
+    }
+
     const handleNewFile = (dirPath?: string) => {
         setMenu(null)
+        if (dirPath) setCollapsedPaths((prev: Set<string>) => { const next = new Set(prev); next.delete(dirPath); return next })
         setInlineEdit({ type: 'newFile', dirPath })
     }
 
     const handleNewDir = (dirPath?: string) => {
         setMenu(null)
+        if (dirPath) setCollapsedPaths((prev: Set<string>) => { const next = new Set(prev); next.delete(dirPath); return next })
         setInlineEdit({ type: 'newDir', dirPath })
     }
 
@@ -226,6 +249,8 @@ export default function Sidebar({ tree, currentFile, onOpenFile, onRefresh, onFi
                         inlineEdit={inlineEdit}
                         onInlineConfirm={handleInlineConfirm}
                         onInlineCancel={handleInlineCancel}
+                        collapsedPaths={collapsedPaths}
+                        onToggleExpand={handleToggleExpand}
                     />
                 ))}
                 {isRootNewItem && (
