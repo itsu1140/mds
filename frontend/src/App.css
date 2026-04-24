@@ -249,14 +249,6 @@ body,
     overflow: hidden;
 }
 
-.editor-empty {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-muted);
-}
-
 .editor-header {
     display: flex;
     align-items: center;

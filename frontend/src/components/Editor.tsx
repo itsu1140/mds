@@ -37,15 +37,17 @@ export default function Editor({ currentFile, content, onChange, onSave, sidebar
                     {currentFile && <span className="editor-filename">{fileName}</span>}
                 </div>
             )}
-            <div ref={wrapRef} className="editor-content" data-color-mode="dark">
-                <MDEditor
-                    value={content}
-                    onChange={val => onChange(val ?? '')}
-                    height="100%"
-                    preview="live"
-                    visibleDragbar={false}
-                />
-            </div>
+            {currentFile ? (
+                <div ref={wrapRef} className="editor-content" data-color-mode="dark">
+                    <MDEditor
+                        value={content}
+                        onChange={val => onChange(val ?? '')}
+                        height="100%"
+                        preview="live"
+                        visibleDragbar={false}
+                    />
+                </div>
+            ) : null}
         </div>
     )
 }
