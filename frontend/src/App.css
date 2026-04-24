@@ -285,6 +285,7 @@ body,
 .editor-content {
     flex: 1;
     overflow: hidden;
+    position: relative;
 }
 
 .editor-content .w-md-editor {
@@ -301,6 +302,137 @@ body,
 
 .editor-content .w-md-editor-content {
     height: calc(100% - 40px) !important;
+}
+
+/* ── Search Panel ── */
+
+.search-panel {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 200;
+    background: #2c2c2c;
+    border: 1px solid #444;
+    border-radius: 6px;
+    padding: 6px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    min-width: 340px;
+}
+
+.search-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.search-expand {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 2px 4px;
+    font-size: 12px;
+    flex-shrink: 0;
+    width: 20px;
+    text-align: center;
+}
+
+.search-expand-spacer {
+    width: 20px;
+    flex-shrink: 0;
+}
+
+.search-input {
+    flex: 1;
+    background: #1a1a1a;
+    border: 1px solid #444;
+    border-radius: 3px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: inherit;
+    padding: 3px 6px;
+    outline: none;
+    min-width: 0;
+}
+
+.search-input:focus {
+    border-color: var(--accent);
+}
+
+.search-input.invalid {
+    border-color: var(--danger);
+}
+
+.search-toggle {
+    background: none;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-family: monospace;
+    flex-shrink: 0;
+}
+
+.search-toggle.active {
+    background: var(--active-bg);
+    border-color: var(--accent);
+    color: var(--active-text);
+}
+
+.search-toggle:hover {
+    border-color: #555;
+}
+
+.search-count {
+    font-size: 11px;
+    color: var(--text-muted);
+    min-width: 44px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.search-nav,
+.search-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.search-nav:hover,
+.search-close:hover {
+    background: var(--hover);
+    color: var(--text);
+}
+
+.search-btn {
+    background: none;
+    border: 1px solid #444;
+    color: var(--text);
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.search-btn:hover {
+    background: var(--hover);
+}
+
+.search-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
 }
 
 /* ── Context Menu ── */
