@@ -13,6 +13,8 @@ interface Props {
     inlineEdit: InlineEdit
     onInlineConfirm: (value: string) => Promise<true | string>
     onInlineCancel: () => void
+    collapsedPaths: Set<string>
+    onToggleExpand: (path: string) => void
 }
 
 function EditInput({ defaultValue = '', onConfirm, onCancel }: {
@@ -85,8 +87,7 @@ export function NewItemRow({ type, depth, onConfirm, onCancel }: {
     )
 }
 
-export default function FileTreeNode({ node, depth, currentFile, selectedPath, onSelect, onOpenFile, onContextMenu, onDropMove, inlineEdit, onInlineConfirm, onInlineCancel }: Props) {
-    const [expanded, setExpanded] = useState(true)
+export default function FileTreeNode({ node, depth, currentFile, selectedPath, onSelect, onOpenFile, onContextMenu, onDropMove, inlineEdit, onInlineConfirm, onInlineCancel, collapsedPaths, onToggleExpand }: Props) {
     const [dragOver, setDragOver] = useState(false)
     const indent = depth * 16 + 8
     const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -98,10 +99,7 @@ export default function FileTreeNode({ node, depth, currentFile, selectedPath, o
         && inlineEdit !== null
         && inlineEdit.type !== 'rename'
         && inlineEdit.dirPath === node.path
-
-    useEffect(() => {
-        if (isPendingNewInDir) setExpanded(true)
-    }, [isPendingNewInDir])
+    const isExpanded = !collapsedPaths.has(node.path)
 
     const handleDragStart = (e: React.DragEvent) => {
         e.stopPropagation()
@@ -167,14 +165,14 @@ export default function FileTreeNode({ node, depth, currentFile, selectedPath, o
                     onDrop={handleDrop}
                     onClick={() => {
                         if (wasLongPress.current) { wasLongPress.current = false; return }
-                        if (!isRenaming) { onSelect(node.path); setExpanded(v => !v) }
+                        if (!isRenaming) { onSelect(node.path); onToggleExpand(node.path) }
                     }}
                     onContextMenu={e => { e.stopPropagation(); onContextMenu(e, node) }}
                     onTouchStart={handleTouchStart}
                     onTouchEnd={cancelLongPress}
                     onTouchMove={cancelLongPress}
                 >
-                    <span className={`tree-toggle${expanded ? ' expanded' : ''}`} />
+                    <span className={`tree-toggle${isExpanded ? ' expanded' : ''}`} />
                     {isRenaming ? (
                         <EditInput
                             defaultValue={node.name}
@@ -192,7 +190,7 @@ export default function FileTreeNode({ node, depth, currentFile, selectedPath, o
                         </>
                     )}
                 </div>
-                {expanded && (
+                {isExpanded && (
                     <>
                         {node.children?.map(child => (
                             <FileTreeNode
@@ -208,6 +206,8 @@ export default function FileTreeNode({ node, depth, currentFile, selectedPath, o
                                 inlineEdit={inlineEdit}
                                 onInlineConfirm={onInlineConfirm}
                                 onInlineCancel={onInlineCancel}
+                                collapsedPaths={collapsedPaths}
+                                onToggleExpand={onToggleExpand}
                             />
                         ))}
                         {isPendingNewInDir && (
