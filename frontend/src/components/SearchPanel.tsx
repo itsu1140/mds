@@ -5,7 +5,7 @@ interface Match { start: number; end: number }
 function findMatches(content: string, term: string, useRegex: boolean, caseSensitive: boolean): Match[] {
     if (!term) return []
     try {
-        const flags = caseSensitive ? 'g' : 'gi'
+        const flags = caseSensitive ? 'gm' : 'gim'
         const pattern = useRegex ? term : term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
         const re = new RegExp(pattern, flags)
         const result: Match[] = []
@@ -90,7 +90,7 @@ export default function SearchPanel({ content, onChange, editorRef, showReplace:
     const replaceAllMatches = () => {
         if (!term || invalidRegex) return
         try {
-            const flags = caseSensitive ? 'g' : 'gi'
+            const flags = caseSensitive ? 'gm' : 'gim'
             const pattern = useRegex ? term : term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
             onChange(content.replace(new RegExp(pattern, flags), replacement))
             setMatchIndex(0)
