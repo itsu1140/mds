@@ -76,8 +76,10 @@ export function NewItemRow({ type, depth, onConfirm, onCancel }: {
     const indent = depth * 16 + 8
     return (
         <div className="tree-item" style={{ paddingLeft: indent }}>
-            <span className={type === 'newDir' ? 'tree-toggle' : 'tree-icon'} />
-            <span className="tree-file-icon">{type === 'newFile' ? '📄' : ''}</span>
+            {type === 'newDir'
+                ? <span className="tree-toggle" />
+                : <span className="tree-file-icon">📄</span>
+            }
             <EditInput onConfirm={onConfirm} onCancel={onCancel} />
         </div>
     )
@@ -173,7 +175,6 @@ export default function FileTreeNode({ node, depth, currentFile, selectedPath, o
                     onTouchMove={cancelLongPress}
                 >
                     <span className={`tree-toggle${expanded ? ' expanded' : ''}`} />
-                    <span className="tree-dir-icon">📁</span>
                     {isRenaming ? (
                         <EditInput
                             defaultValue={node.name}
@@ -238,7 +239,6 @@ export default function FileTreeNode({ node, depth, currentFile, selectedPath, o
             onTouchEnd={cancelLongPress}
             onTouchMove={cancelLongPress}
         >
-            <span className="tree-icon" />
             <span className="tree-file-icon">📄</span>
             {isRenaming ? (
                 <EditInput

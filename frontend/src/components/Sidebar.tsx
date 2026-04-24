@@ -193,7 +193,7 @@ export default function Sidebar({ tree, currentFile, onOpenFile, onRefresh, onFi
                 <span className="sidebar-title">MDS</span>
                 <div className="sidebar-actions">
                     <button onClick={() => handleNewFile()} title="新規ファイル">＋</button>
-                    <button onClick={() => handleNewDir()} title="新規フォルダ">🗂</button>
+                    <button onClick={() => handleNewDir()} title="新規フォルダ">📁</button>
                     <button onClick={onClose} title="閉じる" className="sidebar-close-btn">‹</button>
                 </div>
             </div>
