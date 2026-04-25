@@ -224,12 +224,24 @@ export default function FileTreeNode({ node, depth, currentFile, selectedPath, o
         )
     }
 
+    const fileParentDir = node.path.includes('/') ? node.path.substring(0, node.path.lastIndexOf('/')) : undefined
+
     return (
         <div
-            className={`tree-item tree-file${currentFile === node.path ? ' active' : ''}`}
+            className={`tree-item tree-file${currentFile === node.path ? ' active' : ''}${dragOver ? ' drag-over' : ''}`}
             style={{ paddingLeft: indent }}
             draggable
             onDragStart={handleDragStart}
+            onDragOver={e => { e.preventDefault(); e.stopPropagation(); e.dataTransfer.dropEffect = 'move'; setDragOver(true) }}
+            onDragLeave={e => { e.stopPropagation(); setDragOver(false) }}
+            onDrop={e => {
+                e.preventDefault()
+                e.stopPropagation()
+                setDragOver(false)
+                const from = e.dataTransfer.getData('text/plain')
+                if (!from || from === node.path) return
+                onDropMove(from, fileParentDir)
+            }}
             onClick={() => {
                 if (wasLongPress.current) { wasLongPress.current = false; return }
                 if (!isRenaming) { onSelect(node.path); onOpenFile(node.path) }
