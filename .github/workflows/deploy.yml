@@ -1,42 +1,52 @@
 name: Deploy
 
 on:
-  push:
-    branches: main
+    push:
+        branches:
+            - main
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
+    deploy:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
 
-    steps:
-      - uses: actions/checkout@v4
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
 
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+            - name: Build Docker image
+              run: docker build -t mds:latest --build-arg ROOT_PATH=/mds .
 
-      - name: Build and Push
-        uses: docker/build-push-action@v5
-        with:
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/mds:latest
+            - name: Save Docker image
+              run: docker save mds:latest | gzip > image.tar.gz
 
-      - name: Deploy to Server
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          port: ${{ secrets.SSH_PORT }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/mds:latest
-            docker rm -f mds 2>/dev/null || true
-            docker run -d \
-              --name mds \
-              --restart unless-stopped \
-              -p 50003:50003 \
-              -e ROOT_PATH=/mds \
-              -v ${{ secrets.DATA_DIR }}:/app/data \
-              ${{ secrets.DOCKERHUB_USERNAME }}/mds:latest
+            - name: Copy image to server
+              uses: appleboy/scp-action@v0.1.7
+              with:
+                  host: ${{ secrets.SSH_HOST }}
+                  port: ${{ secrets.SSH_PORT }}
+                  username: ${{ secrets.SSH_USER }}
+                  key: ${{ secrets.SSH_KEY }}
+                  source: "image.tar.gz"
+                  target: ${{ secrets.WORK_DIR }}
+
+            - name: Deploy on server
+              uses: appleboy/ssh-action@v1.0.3
+              with:
+                  host: ${{ secrets.SSH_HOST }}
+                  port: ${{ secrets.SSH_PORT }}
+                  username: ${{ secrets.SSH_USER }}
+                  key: ${{ secrets.SSH_KEY }}
+                  script: |
+                      cd ${{ secrets.WORK_DIR }}
+                      docker load < image.tar.gz
+                      docker rm -f mds 2>/dev/null || true
+                      docker run -d \
+                        --name mds \
+                        --restart unless-stopped \
+                        -p 50003:50003 \
+                        -e ROOT_PATH=/mds \
+                        -e PORT=50003 \
+                        -v ${{ secrets.DATA_DIR }}:/app/data \
+                        mds:latest
+                      rm image.tar.gz
