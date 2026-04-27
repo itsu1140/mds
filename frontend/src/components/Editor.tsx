@@ -57,7 +57,15 @@ export default function Editor({ currentFile, content, onChange, onSave, sidebar
                 </div>
             )}
             {currentFile ? (
-                <div ref={wrapRef} className="editor-content" data-color-mode="dark">
+                <div
+                    ref={wrapRef}
+                    className="editor-content"
+                    data-color-mode="dark"
+                    onClick={e => {
+                        if ((e.target as Element).closest('.search-panel')) return
+                        wrapRef.current?.querySelector('textarea')?.focus()
+                    }}
+                >
                     {searchOpen && (
                         <SearchPanel
                             content={content}
