@@ -300,6 +300,11 @@ body,
     border-bottom: 1px solid var(--border) !important;
 }
 
+.editor-content .w-md-editor-toolbar svg {
+    width: 17px !important;
+    height: 17px !important;
+}
+
 .editor-content .w-md-editor-content {
     height: calc(100% - 40px) !important;
 }
