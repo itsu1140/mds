@@ -81,6 +81,13 @@ export default function Editor({ currentFile, content, onChange, onSave, sidebar
                         height="100%"
                         preview="live"
                         visibleDragbar={false}
+                        previewOptions={{
+                            components: {
+                                a: ({ children, href }) => (
+                                    <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>
+                                )
+                            }
+                        }}
                     />
                 </div>
             ) : null}
