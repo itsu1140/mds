@@ -71,6 +71,29 @@ export default function Editor({ currentFile, content, onChange, onSave, sidebar
                 document.execCommand('insertText', false, insertion)
                 requestAnimationFrame(() => ta.setSelectionRange(newPos, newPos))
             }
+            if (e.key === 'Tab' && !isComposingRef.current) {
+                const ta = e.target as HTMLTextAreaElement
+                const start = ta.selectionStart
+                if (start !== ta.selectionEnd) return
+                const lineStart = ta.value.lastIndexOf('\n', start - 1) + 1
+                const currentLine = ta.value.slice(lineStart, start)
+                const match = currentLine.match(/^(\s+)- /)
+                if (!match) return
+                e.preventDefault()
+                if (e.shiftKey) {
+                    // Shift+Tab: インデントを上げる（スペース2つ削除）
+                    const removeCount = Math.min(2, match[1].length)
+                    ta.setSelectionRange(lineStart, lineStart + removeCount)
+                    document.execCommand('insertText', false, '')
+                    const newPos = Math.max(lineStart, start - removeCount)
+                    requestAnimationFrame(() => ta.setSelectionRange(newPos, newPos))
+                } else {
+                    // Tab: インデントを下げる（スペース2つ追加）
+                    ta.setSelectionRange(lineStart, lineStart)
+                    document.execCommand('insertText', false, '  ')
+                    requestAnimationFrame(() => ta.setSelectionRange(start + 2, start + 2))
+                }
+            }
         }
         textarea.addEventListener('compositionstart', onStart)
         textarea.addEventListener('compositionend', onEnd)
