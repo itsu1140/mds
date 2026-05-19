@@ -45,7 +45,7 @@ export default function Editor({ currentFile, content, onChange, onSave, sidebar
     // Close search when file changes
     useEffect(() => { setSearchOpen(false) }, [currentFile])
 
-    // IME 変換中の Tab でタブ文字が挿入されないよう抑制
+    // IME 変換中の Tab でタブ文字が挿入されないよう抑制 / インデント付き箇条書きの Enter 継続
     useEffect(() => {
         if (!currentFile) return
         const textarea = wrapRef.current?.querySelector('textarea')
@@ -53,7 +53,24 @@ export default function Editor({ currentFile, content, onChange, onSave, sidebar
         const onStart = () => { isComposingRef.current = true }
         const onEnd = () => { setTimeout(() => { isComposingRef.current = false }, 0) }
         const onKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'Tab' && isComposingRef.current) e.preventDefault()
+            if (e.key === 'Tab' && isComposingRef.current) {
+                e.preventDefault()
+                return
+            }
+            if (e.key === 'Enter' && !isComposingRef.current) {
+                const ta = e.target as HTMLTextAreaElement
+                const start = ta.selectionStart
+                if (start !== ta.selectionEnd) return
+                const lineStart = ta.value.lastIndexOf('\n', start - 1) + 1
+                const currentLine = ta.value.slice(lineStart, start)
+                const match = currentLine.match(/^(\s+)- /)
+                if (!match) return
+                e.preventDefault()
+                const insertion = '\n' + match[1] + '- '
+                const newPos = start + insertion.length
+                document.execCommand('insertText', false, insertion)
+                requestAnimationFrame(() => ta.setSelectionRange(newPos, newPos))
+            }
         }
         textarea.addEventListener('compositionstart', onStart)
         textarea.addEventListener('compositionend', onEnd)
