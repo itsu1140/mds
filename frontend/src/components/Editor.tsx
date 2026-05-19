@@ -81,6 +81,11 @@ export default function Editor({ currentFile, content, onChange, onSave, sidebar
                         height="100%"
                         preview="live"
                         visibleDragbar={false}
+                        textareaProps={{
+                            onKeyDown: (e) => {
+                                if (e.key === 'Tab' && e.nativeEvent.isComposing) e.preventDefault()
+                            }
+                        }}
                         previewOptions={{
                             components: {
                                 a: ({ children, href }) => (
