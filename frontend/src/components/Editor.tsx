@@ -16,6 +16,7 @@ export default function Editor({ currentFile, content, onChange, onSave, sidebar
     const wrapRef = useRef<HTMLDivElement>(null)
     const [searchOpen, setSearchOpen] = useState(false)
     const [showReplace, setShowReplace] = useState(false)
+    const isComposingRef = useRef(false)
 
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
@@ -43,6 +44,26 @@ export default function Editor({ currentFile, content, onChange, onSave, sidebar
 
     // Close search when file changes
     useEffect(() => { setSearchOpen(false) }, [currentFile])
+
+    // IME 変換中の Tab でタブ文字が挿入されないよう抑制
+    useEffect(() => {
+        if (!currentFile) return
+        const textarea = wrapRef.current?.querySelector('textarea')
+        if (!textarea) return
+        const onStart = () => { isComposingRef.current = true }
+        const onEnd = () => { setTimeout(() => { isComposingRef.current = false }, 0) }
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Tab' && isComposingRef.current) e.preventDefault()
+        }
+        textarea.addEventListener('compositionstart', onStart)
+        textarea.addEventListener('compositionend', onEnd)
+        textarea.addEventListener('keydown', onKeyDown, true)
+        return () => {
+            textarea.removeEventListener('compositionstart', onStart)
+            textarea.removeEventListener('compositionend', onEnd)
+            textarea.removeEventListener('keydown', onKeyDown, true)
+        }
+    }, [currentFile])
 
     const fileName = currentFile?.split('/').pop()?.replace(/\.md$/, '') ?? ''
 
@@ -81,11 +102,6 @@ export default function Editor({ currentFile, content, onChange, onSave, sidebar
                         height="100%"
                         preview="live"
                         visibleDragbar={false}
-                        textareaProps={{
-                            onKeyDown: (e) => {
-                                if (e.key === 'Tab' && e.nativeEvent.isComposing) e.preventDefault()
-                            }
-                        }}
                         previewOptions={{
                             components: {
                                 a: ({ children, href }) => (
