@@ -16,8 +16,6 @@ export default function Editor({ currentFile, content, onChange, onSave, sidebar
     const wrapRef = useRef<HTMLDivElement>(null)
     const [searchOpen, setSearchOpen] = useState(false)
     const [showReplace, setShowReplace] = useState(false)
-    const isComposingRef = useRef(false)
-
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 's') {
@@ -45,25 +43,23 @@ export default function Editor({ currentFile, content, onChange, onSave, sidebar
     // Close search when file changes
     useEffect(() => { setSearchOpen(false) }, [currentFile])
 
-    // IME 変換中の Tab でタブ文字が挿入されないよう抑制 / インデント付き箇条書きの Enter 継続
+    // IME 変換中の Tab でタブ文字が挿入されないよう抑制 / 箇条書きの Enter 継続・インデント操作
     useEffect(() => {
         if (!currentFile) return
         const textarea = wrapRef.current?.querySelector('textarea')
         if (!textarea) return
-        const onStart = () => { isComposingRef.current = true }
-        const onEnd = () => { setTimeout(() => { isComposingRef.current = false }, 0) }
         const onKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'Tab' && isComposingRef.current) {
+            if (e.key === 'Tab' && e.isComposing) {
                 e.preventDefault()
                 return
             }
-            if (e.key === 'Enter' && !isComposingRef.current) {
+            if (e.key === 'Enter' && !e.isComposing) {
                 const ta = e.target as HTMLTextAreaElement
                 const start = ta.selectionStart
                 if (start !== ta.selectionEnd) return
                 const lineStart = ta.value.lastIndexOf('\n', start - 1) + 1
                 const currentLine = ta.value.slice(lineStart, start)
-                const match = currentLine.match(/^(\s+)- /)
+                const match = currentLine.match(/^(\s*)- /)
                 if (!match) return
                 e.preventDefault()
                 const insertion = '\n' + match[1] + '- '
@@ -71,36 +67,31 @@ export default function Editor({ currentFile, content, onChange, onSave, sidebar
                 document.execCommand('insertText', false, insertion)
                 requestAnimationFrame(() => ta.setSelectionRange(newPos, newPos))
             }
-            if (e.key === 'Tab' && !isComposingRef.current) {
+            if (e.key === 'Tab' && !e.isComposing) {
                 const ta = e.target as HTMLTextAreaElement
                 const start = ta.selectionStart
                 if (start !== ta.selectionEnd) return
                 const lineStart = ta.value.lastIndexOf('\n', start - 1) + 1
                 const currentLine = ta.value.slice(lineStart, start)
-                const match = currentLine.match(/^(\s+)- /)
+                const match = currentLine.match(/^(\s*)- /)
                 if (!match) return
                 e.preventDefault()
                 if (e.shiftKey) {
-                    // Shift+Tab: インデントを上げる（スペース2つ削除）
                     const removeCount = Math.min(2, match[1].length)
+                    if (removeCount === 0) return
                     ta.setSelectionRange(lineStart, lineStart + removeCount)
                     document.execCommand('insertText', false, '')
                     const newPos = Math.max(lineStart, start - removeCount)
                     requestAnimationFrame(() => ta.setSelectionRange(newPos, newPos))
                 } else {
-                    // Tab: インデントを下げる（スペース2つ追加）
                     ta.setSelectionRange(lineStart, lineStart)
                     document.execCommand('insertText', false, '  ')
                     requestAnimationFrame(() => ta.setSelectionRange(start + 2, start + 2))
                 }
             }
         }
-        textarea.addEventListener('compositionstart', onStart)
-        textarea.addEventListener('compositionend', onEnd)
         textarea.addEventListener('keydown', onKeyDown, true)
         return () => {
-            textarea.removeEventListener('compositionstart', onStart)
-            textarea.removeEventListener('compositionend', onEnd)
             textarea.removeEventListener('keydown', onKeyDown, true)
         }
     }, [currentFile])
